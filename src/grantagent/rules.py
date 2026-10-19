@@ -222,7 +222,12 @@ def check_age(c: CriteriaExtraction, p: CompanyProfile, as_of: date) -> Criterio
         return None
     age = korean_age(p.ceo_birth_date, as_of)
     ok = (c.age_min is None or age >= c.age_min) and (c.age_max is None or age <= c.age_max)
-    rng = f"{c.age_min or ''}~{c.age_max or ''}세"
+    if c.age_min is not None and c.age_max is not None:
+        rng = f"만 {c.age_min}~{c.age_max}세"
+    elif c.age_min is not None:
+        rng = f"만 {c.age_min}세 이상"
+    else:
+        rng = f"만 {c.age_max}세 이하"
     return CriterionCheck(
         criterion="대표자 나이",
         status="pass" if ok else "fail",

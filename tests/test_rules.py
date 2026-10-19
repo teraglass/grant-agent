@@ -101,3 +101,15 @@ def test_quote_spanning_lines_with_dropped_paren():
     # 조각 하나라도 원문에 없으면 환각
     assert quote_in_text("신산업 분야는 15년 미만,\n「벤처기업 육성에 관한 특별법」", text) is False
     assert quote_in_text("수출 실적 10만불 이상", text) is False
+
+
+def test_age_reason_reads_naturally(young_seoul):
+    from grantagent.rules import check_age
+
+    assert check_age(crit(age_min=20, age_max=None), young_seoul, AS_OF).reason.endswith(
+        "만 20세 이상"
+    )
+    assert check_age(crit(age_min=None, age_max=39), young_seoul, AS_OF).reason.endswith(
+        "만 39세 이하"
+    )
+    assert check_age(crit(age_min=20, age_max=39), young_seoul, AS_OF).reason.endswith("만 20~39세")

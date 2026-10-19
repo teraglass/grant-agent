@@ -40,6 +40,10 @@ make eval                          # 현재 @production 프롬프트 평가 → 
 make eval EX=2 JU=2                # 후보 프롬프트 버전 평가
 make eval MODEL=claude-haiku-5-5   # 모델 비교
 make promote R=<run_id>            # 승격 게이트 → 통과하면 @production 이동
+
+make serve                         # API + 데모 페이지 → http://127.0.0.1:8000
+make reload                        # 승격 후 서버 재시작 없이 새 프롬프트 반영
+make feedback                      # 데모 피드백 검토 (APPLY=1: 평가셋에 추가)
 ```
 
 ## 평가와 승격
@@ -106,7 +110,36 @@ make promote R=<run_id>            # 승격 게이트 → 통과하면 @producti
 - 라벨 재검토 3건: 로켓십 IR 3회차(기후·ESG) 공고에서 기후·ESG 분야가 아닌 회사 3곳을 "확인 필요"(초기창업패키지 이력 확인 불가) → "지원 불가"(분야 불일치)로 변경. 모델 출력을 본 뒤 바꾼 것이라 근거를 `data/eval_set.jsonl` 메모에 남겼습니다.
 - 개선 과정에서 같은 평가셋을 반복해서 보며 고쳤으므로, 97.5%는 이 평가셋에 대한 수치입니다. 새 공고로 만든 평가셋에서의 성능은 Day 3에서 피드백으로 확장해 확인합니다.
 
-## 데이터
+## 서빙과 피드백 루프
+
+| 판정: 공고 요건별로 회사를 대조하고 원문을 인용 | 피드백: 사용자가 실제 정답을 고름 |
+|---|---|
+| ![판정 화면](docs/image/judgement1.png) | ![피드백 화면](docs/image/judgement2.png) |
+
+판정 화면의 각 요건에는 **규칙**(나이·업력·지역을 코드로 계산)인지 **LLM**(업종·결격 사유 등)인지 표시되고, 그 근거가 된 공고 원문이 함께 나옵니다. 결격 사유(채무불이행, 체납)는 회사 정보에 해당한다는 근거가 없으면 통과로 판정합니다.
+
+```
+데모 페이지 ──POST /assess──▶ 에이전트 (@production 프롬프트) ──▶ 판정 + 근거 + trace_id
+     │
+     └──POST /feedback──▶ ① MLflow 트레이스에 사람 평가 기록 (user_says_correct, expected_verdict)
+                          ② data/feedback.jsonl
+                                   │  make feedback: 새 사례 / 평가셋과 충돌 / 이미 있음으로 분류
+                                   ▼  APPLY=1: 새 사례만 평가셋에 추가 (충돌은 사람이 직접 판단)
+                          data/eval_set.jsonl ──▶ make eval ──▶ 다음 프롬프트는 늘어난 평가셋으로 게이트 통과
+```
+
+| 엔드포인트 | 설명 |
+|---|---|
+| `GET /` | 데모 페이지: 공고·회사 선택 → 판정 → 맞아요/틀렸어요 |
+| `POST /assess` | `{announcement_id, profile_id, as_of?}` → 판정, 요건별 근거, `trace_id` |
+| `POST /feedback` | `{trace_id, correct, expected?, comment?}` → 트레이스 + 파일에 기록 |
+| `GET /info` | 현재 모델·프롬프트 버전 |
+| `POST /admin/reload` | `@production` 프롬프트를 다시 불러와 교체 (게이트 승격 → 재시작 없이 반영) |
+
+- 피드백은 `trace_id`만 받고, 어떤 공고·회사·버전의 판정이었는지는 서버가 기억합니다. 클라이언트가 조작한 값이 평가셋에 들어가지 않습니다.
+- 피드백도 틀릴 수 있어 평가셋에 자동 반영하지 않습니다. 기존 라벨과 다르거나 피드백끼리 엇갈리면 '충돌'로 보여 주고 덮어쓰지 않습니다.
+- MLflow 서버가 꺼져 있으면 트레이싱 없이 판정만 하고, 피드백은 파일에만 남깁니다.
+
 
 - **공고**: 공공데이터포털 [창업진흥원 K-Startup 조회서비스](https://www.data.go.kr/data/15125364/openapi.do) (자동승인). 공고는 매일 바뀌므로 평가에는 **수집 시점 스냅샷**을 씁니다. 그래야 프롬프트·모델 버전끼리 같은 입력으로 비교할 수 있습니다.
 - **회사 프로필**: `data/profiles.json`의 가상 회사 5곳 (예비창업자, 창업 2년 제조, 5년 유통, 9년 바이오, 1년 콘텐츠).
@@ -116,4 +149,4 @@ make promote R=<run_id>            # 승격 게이트 → 통과하면 @producti
 
 - [x] **Day 1**: 공고 수집, 2단계 에이전트, 근거 검증, 트레이싱, 프롬프트 레지스트리, 라벨링 도구
 - [x] **Day 2**: `mlflow.genai.evaluate` 평가(정확도, 근거 유효율, LLM 심사위원, 비용·지연), 프롬프트·모델 비교, `@production` 승격 게이트
-- [ ] **Day 3**: FastAPI + 데모, 사용자 피드백 → 평가셋 확장, CI
+- [x] **Day 3**: FastAPI + 데모, 사용자 피드백 → 평가셋 확장, CI

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지원사업 적격성 판정</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e4e2dc;
+    --accent: #2f5bd3; --ok: #1f7a4d; --ok-bg: #e5f3ea; --no: #b3261e; --no-bg: #fbe9e7;
+    --warn: #8a5a00; --warn-bg: #fdf1d6; --quote: #f1efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --card: #201f1d; --ink: #ecebe7; --muted: #a09e98; --line: #34332f;
+      --accent: #8aa8ff; --ok: #7fd3a5; --ok-bg: #1d3328; --no: #ff9d93; --no-bg: #3a1f1c;
+      --warn: #f2c86b; --warn-bg: #3a2f17; --quote: #2a2926;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+               "Noto Sans KR", sans-serif; }
+  header { max-width: 1100px; margin: 0 auto; padding: 28px 16px 8px; }
+  header h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  #meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 16px;
+         grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+             margin: 0 0 10px; font-weight: 600; }
+  input[type=search], select, textarea { width: 100%; font: inherit; color: var(--ink);
+         background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+  .list { max-height: 300px; overflow: auto; margin-top: 8px; border: 1px solid var(--line);
+          border-radius: 10px; }
+  .item { padding: 9px 12px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 14px; }
+  .item:last-child { border-bottom: 0; }
+  .item:hover { background: var(--bg); }
+  .item.sel { background: var(--accent); color: #fff; }
+  .item small { display: block; opacity: .75; font-size: 12px; }
+  .profiles { display: grid; gap: 8px; }
+  .profile { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; cursor: pointer; }
+  .profile.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+  .profile b { font-size: 14px; }
+  .profile span { display: block; font-size: 12px; color: var(--muted); }
+  .row { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  button { font: inherit; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer;
+           background: var(--accent); color: #fff; font-weight: 600; }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button:disabled { opacity: .5; cursor: default; }
+  label.date { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+  label.date input { width: auto; font: inherit; color: var(--ink); background: var(--bg);
+                     border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .empty { color: var(--muted); text-align: center; padding: 60px 10px; }
+  .verdict { display: inline-block; font-size: 22px; font-weight: 700; padding: 6px 14px;
+             border-radius: 10px; letter-spacing: -0.02em; }
+  .v-eligible { color: var(--ok); background: var(--ok-bg); }
+  .v-ineligible { color: var(--no); background: var(--no-bg); }
+  .v-needs_review { color: var(--warn); background: var(--warn-bg); }
+  .summary { margin: 10px 0 14px; }
+  .check { border-top: 1px solid var(--line); padding: 11px 0; display: grid;
+           grid-template-columns: 26px 1fr; gap: 4px 8px; }
+  .icon { font-size: 16px; line-height: 1.5; }
+  .check .crit { font-weight: 600; }
+  .tag { font-size: 11px; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px;
+         color: var(--muted); margin-left: 6px; font-weight: 500; }
+  .reason { color: var(--muted); font-size: 14px; }
+  blockquote { grid-column: 2; margin: 4px 0 0; background: var(--quote); border-radius: 8px;
+               padding: 7px 10px; font-size: 13px; white-space: pre-wrap; }
+  blockquote.bad { outline: 1px dashed var(--no); }
+  .foot { font-size: 12px; color: var(--muted); margin-top: 12px; word-break: break-all; }
+  .fb { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
+  .fb .opts { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .fb .opts button { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .fb .opts button.sel { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .fb .ai { font-size: 11px; font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 6px;
+            background: var(--quote); color: var(--muted); }
+  .fb .opts button.sel .ai { background: rgba(255,255,255,.25); color: #fff; }
+  .hint { font-size: 13px; color: var(--muted); }
+  .done { font-size: 14px; color: var(--ok); }
+  .err { color: var(--no); }
+</style>
+</head>
+<body>
+<header>
+  <h1>지원사업 적격성 판정</h1>
+  <p>K-Startup 공고와 회사를 고르면 신청 자격을 판정하고, 판정 근거를 공고 원문에서 인용합니다.</p>
+  <div id="meta"></div>
+</header>
+<main>
+  <section class="card">
+    <h2>1. 공고</h2>
+    <input type="search" id="q" placeholder="공고명·기관 검색">
+    <div class="list" id="anns"></div>
+    <h2 style="margin-top:18px">2. 회사 (가상)</h2>
+    <div class="profiles" id="profiles"></div>
+    <div class="row">
+      <button id="go" disabled>판정하기</button>
+      <label class="date">기준일 <input type="date" id="asof"></label>
+    </div>
+  </section>
+  <section class="card" id="result"><div class="empty">공고와 회사를 고른 뒤 판정하기를 누르세요.</div></section>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const ICON = { pass: "✅", fail: "❌", unknown: "❔" };
+const VERDICT_KO = { eligible: "지원 가능", ineligible: "지원 불가", needs_review: "확인 필요" };
+let anns = [], sel = { ann: null, profile: null }, last = null;
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify(body) } : {});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail ? JSON.stringify(data.detail) : r.statusText);
+  return data;
+}
+
+function renderAnns() {
+  const q = $("#q").value.trim();
+  $("#anns").innerHTML = anns
+    .filter((a) => !q || (a.title + a.org).includes(q))
+    .map((a) => `<div class="item ${sel.ann === a.id ? "sel" : ""}" data-id="${a.id}">${esc(a.title)}
+      <small>${esc(a.org || "")} · ${esc(a.region || "")} · 마감 ${esc(a.receipt_end || "-")}</small></div>`)
+    .join("");
+}
+
+function ready() { $("#go").disabled = !(sel.ann && sel.profile); }
+
+async function init() {
+  $("#asof").value = new Date().toISOString().slice(0, 10);
+  const [info, a, p] = await Promise.all([api("/info"), api("/announcements"), api("/profiles")]);
+  anns = a;
+  $("#meta").textContent = `모델 ${info.model} · 프롬프트 extract v${info.prompt_versions.extract}` +
+    ` · judge v${info.prompt_versions.judge}` + (info.tracing ? " · MLflow 트레이싱 켜짐" : "");
+  renderAnns();
+  $("#profiles").innerHTML = p.map((x) => `<div class="profile" data-id="${x.id}"><b>${esc(x.name)}</b>
+    <span>${esc(x.stage)} · ${esc(x.region)} · ${esc(x.industry)}${x.employees ? ` · ${x.employees}명` : ""}</span></div>`).join("");
+}
+
+$("#q").addEventListener("input", renderAnns);
+$("#anns").addEventListener("click", (e) => {
+  const it = e.target.closest(".item"); if (!it) return;
+  sel.ann = it.dataset.id; renderAnns(); ready();
+});
+$("#profiles").addEventListener("click", (e) => {
+  const it = e.target.closest(".profile"); if (!it) return;
+  sel.profile = it.dataset.id;
+  document.querySelectorAll(".profile").forEach((x) => x.classList.toggle("sel", x === it)); ready();
+});
+
+$("#go").addEventListener("click", async () => {
+  $("#go").disabled = true;
+  $("#result").innerHTML = `<div class="empty">판정 중… (보통 3~10초)</div>`;
+  try {
+    last = await api("/assess", { announcement_id: sel.ann, profile_id: sel.profile, as_of: $("#asof").value });
+    renderResult(last);
+  } catch (e) {
+    $("#result").innerHTML = `<div class="empty err">오류: ${esc(e.message)}</div>`;
+  } finally { ready(); }
+});
+
+function renderResult(r) {
+  const ann = anns.find((a) => a.id === sel.ann);
+  const checks = r.checks.map((c) => `<div class="check"><div class="icon">${ICON[c.status]}</div>
+      <div><span class="crit">${esc(c.criterion)}</span><span class="tag">${c.source === "rule" ? "규칙" : "LLM"}</span>
+      <div class="reason">${esc(c.reason)}</div></div>
+      ${c.quote ? `<blockquote class="${c.quote_valid === false ? "bad" : ""}">${esc(c.quote)}${c.quote_valid === false ? "\n⚠ 원문에서 찾을 수 없는 인용" : ""}</blockquote>` : ""}
+    </div>`).join("");
+  $("#result").innerHTML = `
+    <h2>판정</h2>
+    <span class="verdict v-${r.verdict}">${r.verdict_ko}</span>
+    <p class="summary">${esc(r.summary)}</p>
+    ${checks}
+    <div class="foot">${ann?.url ? `<a href="${esc(ann.url)}" target="_blank" rel="noopener">공고 원문 보기</a> · ` : ""}
+      trace ${esc(r.trace_id || "-")}</div>
+    ${r.trace_id ? `<div class="fb" id="fb">
+      <b>실제 정답은 무엇인가요?</b>
+      <div class="hint">AI 판정과 같으면 그대로 고르면 됩니다. 피드백은 MLflow 트레이스에 기록되고, 검토 후 평가셋에 추가됩니다.</div>
+      <div class="opts">${Object.entries(VERDICT_KO).map(([k, v]) =>
+        `<button data-expected="${k}">${v}${k === r.verdict ? '<span class="ai">AI 판정</span>' : ""}</button>`).join("")}</div>
+      <textarea id="comment" rows="2" placeholder="이유 (선택) 예: 고양시 소재 예비창업자만 해당"></textarea>
+      <div class="row"><button id="send" disabled>피드백 보내기</button><span id="pick" class="hint"></span></div>
+    </div>` : ""}`;
+  if (!r.trace_id) return;
+  let expected = null;
+  $("#fb").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.expected) {
+      expected = b.dataset.expected;
+      document.querySelectorAll("[data-expected]").forEach((x) => x.classList.toggle("sel", x === b));
+      $("#send").disabled = false;
+      $("#pick").textContent = expected === r.verdict ? "AI 판정이 맞다고 기록합니다" : "AI 판정이 틀렸다고 기록합니다";
+      return;
+    }
+    if (b.id === "send") send(expected, expected === r.verdict);
+  });
+}
+
+async function send(expected, correct) {
+  $("#send").disabled = true;
+  try {
+    const res = await api("/feedback", { trace_id: last.trace_id, correct, expected, comment: $("#comment").value });
+    $("#fb").innerHTML = `<div class="done">✓ 피드백을 기록했습니다 · 정답 <b>${VERDICT_KO[res.expected]}</b>
+      (${correct ? "AI 판정과 같음" : "AI 판정과 다름"})${res.logged_to_trace ? "" : "<br><span class='err'>MLflow 트레이스에는 기록하지 못해 파일에만 저장했습니다</span>"}</div>`;
+  } catch (e) {
+    $("#send").disabled = false;
+    $("#pick").innerHTML = `<span class="err">오류: ${esc(e.message)}</span>`;
+  }
+}
+
+init().catch((e) => { $("#result").innerHTML = `<div class="empty err">서버 연결 실패: ${esc(e.message)}</div>`; });
+</script>
+</body>
+</html>
