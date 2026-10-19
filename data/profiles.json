@@ -1,0 +1,67 @@
+[
+  {
+    "id": "p01",
+    "name": "러닝루프 (가상)",
+    "stage": "예비창업자",
+    "founded_date": null,
+    "ceo_birth_date": "1998-03-14",
+    "region": "서울",
+    "industry": "AI 기반 초등 수학 교육 앱",
+    "employees": 0,
+    "annual_revenue_krw": 0,
+    "traits": ["청년"],
+    "description": "사업자 등록 전. 시제품(MVP) 개발 중이며 대표 1인."
+  },
+  {
+    "id": "p02",
+    "name": "모션웍스 (가상)",
+    "stage": "창업기업",
+    "founded_date": "2024-06-01",
+    "ceo_birth_date": "1992-11-02",
+    "region": "경기",
+    "industry": "산업용 로봇 관절 모듈 제조",
+    "employees": 6,
+    "annual_revenue_krw": 420000000,
+    "traits": ["법인", "기술창업"],
+    "description": "기술보증기금 보증 이용 중. 특허 2건 출원."
+  },
+  {
+    "id": "p03",
+    "name": "바다식탁 (가상)",
+    "stage": "창업기업",
+    "founded_date": "2021-04-20",
+    "ceo_birth_date": "1981-07-09",
+    "region": "부산",
+    "industry": "수산물 가공식품 온라인 유통",
+    "employees": 18,
+    "annual_revenue_krw": 3100000000,
+    "traits": ["법인"],
+    "description": "자사몰과 오픈마켓에서 판매. 수출 실적 없음."
+  },
+  {
+    "id": "p04",
+    "name": "셀바이오텍 (가상)",
+    "stage": "창업기업",
+    "founded_date": "2016-09-05",
+    "ceo_birth_date": "1974-02-27",
+    "region": "대전",
+    "industry": "바이오 진단키트 연구개발",
+    "employees": 42,
+    "annual_revenue_krw": 8700000000,
+    "traits": ["법인", "벤처기업 인증", "연구소 보유"],
+    "description": "기업부설연구소 보유. 해외 수출 진행 중."
+  },
+  {
+    "id": "p05",
+    "name": "스토리판다 (가상)",
+    "stage": "창업기업",
+    "founded_date": "2025-08-11",
+    "ceo_birth_date": "1995-05-30",
+    "region": "광주",
+    "industry": "웹툰·애니메이션 콘텐츠 제작",
+    "employees": 2,
+    "annual_revenue_krw": 35000000,
+    "traits": ["개인사업자", "여성기업", "청년"],
+    "description": "대표 포함 2인. 여성기업 확인서 보유."
+  }
+]

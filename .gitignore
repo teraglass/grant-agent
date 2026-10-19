@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+.env
+.env.*
+!.env.example
+
+# 판정 결과 캐시 (재현용 스냅샷·평가셋은 data/에 커밋합니다)
+.cache/
+mlruns/
+reports/
+mlartifacts/
+*.db
+
+.DS_Store
+.idea/
+.vscode/
